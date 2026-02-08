@@ -11,13 +11,13 @@ class BLBook:
         self.total_pages = total_pages
         self.last_read = datetime.datetime.now()
 
-# --- Dados Iniciais (Simulando seus arquivos) ---
-# Aqui estariam os caminhos para seus PDFs reais
+# --- Dados Iniciais ---
+# Usando strings para cores para evitar erro no Android
 my_library = [
-    BLBook("Love Stage!! Vol. 1", "Escolar", ft.colors.INDIGO_300, 150),
-    BLBook("Blood Bank", "Fantasia", ft.colors.INDIGO_400, 200),
-    BLBook("Omega Complex", "Omegaverse", ft.colors.PINK_200, 120),
-    BLBook("Bj Alex", "Drama", ft.colors.DEEP_PURPLE_300, 80),
+    BLBook("Love Stage!! Vol. 1", "Escolar", "indigo300", 150),
+    BLBook("Blood Bank", "Fantasia", "indigo400", 200),
+    BLBook("Omega Complex", "Omegaverse", "pink200", 120),
+    BLBook("Bj Alex", "Drama", "deepPurple300", 80),
 ]
 
 def main(page: ft.Page):
@@ -25,9 +25,8 @@ def main(page: ft.Page):
     page.title = "BL Reader"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
-    page.window_width = 380  # Tamanho simulado de celular
-    page.window_height = 800
-    page.bgcolor = "#F5F5FA" # Cor de fundo levemente cinza do print
+    # Removidos tamanhos fixos de janela para se adaptar à tela do celular
+    page.bgcolor = "#F5F5FA" 
 
     # Estado da aplicação
     current_book = None
@@ -38,16 +37,15 @@ def main(page: ft.Page):
     def create_book_card(book, width=140, height=200, minimal=False):
         """Cria o card visual do livro"""
         
-        # Barra de progresso visual
         progress_val = book.current_page / book.total_pages if book.total_pages > 0 else 0
         
         card_content = ft.Container(
             content=ft.Column([
-                # Capa (Placeholder da cor)
+                # Capa
                 ft.Container(
                     content=ft.Text(
-                        "".join([word[0] for word in book.title.split()[:2]]), # Iniciais
-                        size=30, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE
+                        "".join([word[0] for word in book.title.split()[:2]]), 
+                        size=30, weight=ft.FontWeight.BOLD, color="white"
                     ),
                     alignment=ft.alignment.center,
                     bgcolor=book.cover_color,
@@ -57,21 +55,21 @@ def main(page: ft.Page):
                 # Informações
                 ft.Column([
                     ft.Text(book.title, weight=ft.FontWeight.BOLD, size=14, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS),
-                    ft.Text(f"Cap. {book.current_page} - Pág {book.current_page}", size=11, color=ft.colors.GREY),
-                    ft.ProgressBar(value=progress_val, color=ft.colors.PINK_ACCENT, bgcolor=ft.colors.PINK_50, height=4)
+                    ft.Text(f"Cap. {book.current_page} - Pág {book.current_page}", size=11, color="grey"),
+                    ft.ProgressBar(value=progress_val, color="pinkAccent", bgcolor="pink50", height=4)
                 ], spacing=2)
             ], spacing=5),
             width=width,
             padding=10,
-            bgcolor=ft.colors.WHITE,
+            bgcolor="white",
             border_radius=16,
-            on_click=lambda _: open_reader(book), # Clicar abre o leitor
-            shadow=ft.BoxShadow(blur_radius=10, color=ft.colors.with_opacity(0.05, ft.colors.BLACK))
+            on_click=lambda _: open_reader(book),
+            shadow=ft.BoxShadow(blur_radius=10, color=ft.colors.with_opacity(0.05, "black"))
         )
         return card_content
 
     def create_folder_card(icon, name, count, color):
-        """Cria o card das pastas (Omegaverse, Escolar, etc)"""
+        """Cria o card das pastas"""
         return ft.Container(
             content=ft.Column([
                 ft.Container(
@@ -82,17 +80,17 @@ def main(page: ft.Page):
                     width=45, height=45, alignment=ft.alignment.center
                 ),
                 ft.Text(name, weight=ft.FontWeight.BOLD, size=14),
-                ft.Text(f"{count} arquivos", size=11, color=ft.colors.GREY)
+                ft.Text(f"{count} arquivos", size=11, color="grey")
             ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.START),
             width=150, height=120,
-            bgcolor=ft.colors.WHITE,
+            bgcolor="white",
             border_radius=16,
             padding=15,
             on_click=lambda _: open_category(name),
-            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.with_opacity(0.05, ft.colors.BLACK))
+            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.with_opacity(0.05, "black"))
         )
 
-    # --- Funções de Navegação e Lógica ---
+    # --- Navegação ---
 
     def open_reader(book):
         nonlocal current_book
@@ -104,30 +102,19 @@ def main(page: ft.Page):
         selected_category = category_name
         page.go("/category")
 
-    def save_progress(e):
-        """Simula salvar a página ao clicar em voltar ou sair"""
-        if current_book:
-            current_book.last_read = datetime.datetime.now()
-        page.go("/")
-
     def search_books(e):
-        """Filtra os livros na home"""
-        search_term = e.control.value.lower()
-        filtered_books = [b for b in my_library if search_term in b.title.lower()]
-        update_home_grid(filtered_books)
+        pass # Busca simples
 
-    # --- Views (Telas) ---
+    # --- Views ---
 
     def get_home_view():
-        # Ordenar por leitura recente para a seção "Continuar Lendo"
         recent_books = sorted(my_library, key=lambda x: x.last_read, reverse=True)[:2]
         
-        # Grid de Pastas
         folders_grid = ft.Row([
-            create_folder_card(ft.icons.PETS, "Omegaverse", 5, ft.colors.PINK),
-            create_folder_card(ft.icons.SCHOOL, "Escolar", 3, ft.colors.PINK),
-            create_folder_card(ft.icons.TOKEN, "Fantasia", 8, ft.colors.PURPLE), # Ícone dragão não padrão, usando token
-            create_folder_card(ft.icons.THEATER_COMEDY, "Drama", 2, ft.colors.PURPLE),
+            create_folder_card(ft.icons.PETS, "Omegaverse", 5, "pink"),
+            create_folder_card(ft.icons.SCHOOL, "Escolar", 3, "pink"),
+            create_folder_card(ft.icons.TOKEN, "Fantasia", 8, "purple"),
+            create_folder_card(ft.icons.THEATER_COMEDY, "Drama", 2, "purple"),
         ], wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
 
         return ft.View(
@@ -136,8 +123,8 @@ def main(page: ft.Page):
                 # Header
                 ft.Container(
                     content=ft.Row([
-                        ft.Text("BL Reader", size=24, weight=ft.FontWeight.BOLD, color=ft.colors.DEEP_PURPLE),
-                        ft.CircleAvatar(bgcolor=ft.colors.GREY_300, radius=16, content=ft.Icon(ft.icons.PERSON, size=20, color=ft.colors.WHITE))
+                        ft.Text("BL Reader", size=24, weight=ft.FontWeight.BOLD, color="deepPurple"),
+                        ft.CircleAvatar(bgcolor="grey300", radius=16, content=ft.Icon(ft.icons.PERSON, size=20, color="white"))
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                     padding=ft.padding.only(left=20, right=20, top=10)
                 ),
@@ -148,7 +135,7 @@ def main(page: ft.Page):
                         prefix_icon=ft.icons.SEARCH,
                         hint_text="Love stage",
                         border=ft.InputBorder.NONE,
-                        bgcolor=ft.colors.WHITE,
+                        bgcolor="white",
                         border_radius=30,
                         content_padding=15,
                         text_size=14,
@@ -157,13 +144,12 @@ def main(page: ft.Page):
                     padding=ft.padding.symmetric(horizontal=20)
                 ),
 
-                # Conteúdo Scrollável
+                # Conteúdo
                 ft.Column([
-                    # Seção Continuar Lendo
                     ft.Container(
                         content=ft.Row([
                             ft.Text("Continuar Lendo", size=16, weight=ft.FontWeight.BOLD),
-                            ft.Text("Ver tudo", size=12, color=ft.colors.DEEP_PURPLE, weight=ft.FontWeight.BOLD)
+                            ft.Text("Ver tudo", size=12, color="deepPurple", weight=ft.FontWeight.BOLD)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         padding=ft.padding.symmetric(horizontal=20)
                     ),
@@ -175,7 +161,6 @@ def main(page: ft.Page):
                         padding=ft.padding.only(left=20)
                     ),
 
-                    # Seção Minhas Pastas
                     ft.Container(
                         content=ft.Row([
                             ft.Text("Minhas Pastas", size=16, weight=ft.FontWeight.BOLD),
@@ -189,14 +174,14 @@ def main(page: ft.Page):
                     )
                 ], scroll=ft.ScrollMode.AUTO, expand=True),
 
-                # Botão Flutuante (Add)
+                # Botão Flutuante
                 ft.Container(
-                    content=ft.FloatingActionButton(icon=ft.icons.ADD, bgcolor=ft.colors.DEEP_PURPLE_ACCENT, shape=ft.CircleBorder()),
+                    content=ft.FloatingActionButton(icon=ft.icons.ADD, bgcolor="deepPurpleAccent", shape=ft.CircleBorder()),
                     alignment=ft.alignment.bottom_center,
                     padding=10
                 ),
                 
-                # Navbar Simulada
+                # Navbar
                 ft.NavigationBar(
                     destinations=[
                         ft.NavigationDestination(icon=ft.icons.HOME, label=""),
@@ -205,9 +190,9 @@ def main(page: ft.Page):
                         ft.NavigationDestination(icon=ft.icons.SETTINGS, label=""),
                     ],
                     height=60,
-                    bgcolor=ft.colors.WHITE,
+                    bgcolor="white",
                     indicator_color="transparent",
-                    icon_color=ft.colors.GREY,
+                    icon_color="grey",
                     selected_index=0
                 )
             ],
@@ -216,7 +201,6 @@ def main(page: ft.Page):
         )
 
     def get_reader_view():
-        """Tela de Leitura Simulada"""
         
         def change_page(delta):
             new_page = current_book.current_page + delta
@@ -230,10 +214,10 @@ def main(page: ft.Page):
         return ft.View(
             "/reader",
             controls=[
-                ft.AppBar(title=ft.Text(current_book.title), bgcolor=ft.colors.DEEP_PURPLE, color=ft.colors.WHITE),
+                ft.AppBar(title=ft.Text(current_book.title), bgcolor="deepPurple", color="white"),
                 ft.Container(
                     content=ft.Column([
-                        ft.Icon(ft.icons.PICTURE_AS_PDF, size=100, color=ft.colors.GREY_300),
+                        ft.Icon(ft.icons.PICTURE_AS_PDF, size=100, color="grey300"),
                         ft.Text("Aqui apareceria o PDF", size=20, weight=ft.FontWeight.BOLD),
                         page_counter,
                         ft.Row([
@@ -248,13 +232,12 @@ def main(page: ft.Page):
         )
     
     def get_category_view():
-        """Tela de Categoria Específica"""
         category_books = [b for b in my_library if b.category == selected_category]
         
         return ft.View(
             "/category",
             controls=[
-                ft.AppBar(title=ft.Text(selected_category), bgcolor=ft.colors.DEEP_PURPLE, color=ft.colors.WHITE),
+                ft.AppBar(title=ft.Text(selected_category), bgcolor="deepPurple", color="white"),
                 ft.GridView(
                     runs_count=2,
                     max_extent=160,
@@ -266,13 +249,6 @@ def main(page: ft.Page):
                 )
             ]
         )
-
-    # Função para atualizar dinamicamente a home (usada na busca)
-    def update_home_grid(filtered_list=None):
-        # Numa app real, você reconstruiria os controles aqui.
-        # Para este exemplo, a busca apenas imprime no console para simplicidade, 
-        # mas a estrutura está pronta.
-        pass
 
     def route_change(route):
         page.views.clear()
